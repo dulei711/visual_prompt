@@ -1,4 +1,1 @@
-streamlit
-Pillow
-requests
-numpy
+streamlit torch torchvision pillow
