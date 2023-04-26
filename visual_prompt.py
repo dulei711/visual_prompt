@@ -4,7 +4,8 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 # Load the pre-trained GAN model
-model = torch.load('pretrained_model.pth', map_location=torch.device('cpu'))
+model_path = 'path/to/pretrained_model.pth'
+model = torch.load(model_path, map_location=torch.device('cpu'))
 
 # Define a function to generate an image from a user prompt
 def generate_image(prompt):
@@ -19,9 +20,9 @@ def generate_image(prompt):
 
 # Define the Streamlit app
 def app():
-    st.title('Image Generator')
-    # Allow the user to upload an image prompt
-    prompt = st.file_uploader('Upload an image prompt', type=['jpg', 'jpeg', 'png'])
+    st.title('Text to Image Generator')
+    # Allow the user to input a text prompt
+    prompt = st.text_input('Enter a text prompt')
     if prompt:
         # Generate the image from the user prompt
         image = generate_image(prompt)
