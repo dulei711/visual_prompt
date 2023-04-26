@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 # Load the pre-trained BigGAN model from GitHub
-model = torch.hub.load('huggingface/pytorch-pretrained-BigGAN', 'biggan-deep-512', pretrained=True)
+model = torch.hub.load('facebookresearch/BigGAN-PyTorch', 'biggan-deep-512', pretrained=True)
 
 # Define a function to generate an image from a user prompt
 def generate_image(prompt):
