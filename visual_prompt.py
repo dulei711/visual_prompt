@@ -1,32 +1,37 @@
-import streamlit as st
 import torch
 import torchvision.transforms as transforms
-from PIL import Image
+import torchvision.utils as vutils
+import torch.nn.functional as F
+import streamlit as st
 
-# Load the pre-trained BigGAN model from GitHub
-model = torch.hub.load('facebookresearch/BigGAN-PyTorch', 'biggan-deep-512', pretrained=True)
+@st.cache(allow_output_mutation=True)
+def load_gan_model():
+    # Load the pre-trained GAN model from torch.hub
+    model = torch.hub.load('facebookresearch/pytorch_GAN_zoo:hub',
+                           'PGAN', model_name='celebAHQ-512',
+                           pretrained=True, useGPU=torch.cuda.is_available())
+    model = model.cuda()
+    model.eval()
+    return model
 
-# Define a function to generate an image from a user prompt
-def generate_image(prompt):
-    # Convert the prompt to a tensor
-    prompt_tensor = torch.tensor(model.encode(prompt)).unsqueeze(0)
-    # Generate the image using the BigGAN model
+def generate_images(prompt, model, truncation=0.4, truncation_mean=False):
+    # Encode the text prompt as an input tensor
+    text = F.pad(torch.tensor(model.c_classes).view(1, -1), (0, 0, 0, 128 - model.c_classes.shape[0])).cuda()
     with torch.no_grad():
-        image = model.generate_images(prompt_tensor).squeeze(0)
-    # Convert the image tensor to a PIL image
-    image = transforms.ToPILImage()(image)
-    return image
+        noise, _ = model.buildNoiseData(1, 512)
+        out = model.test([noise], text, truncation=truncation, truncation_mean=truncation_mean)[0]
+    # Convert the output tensor to an image
+    out = out.cpu()
+    out = (out + 1) / 2
+    out = transforms.ToPILImage()(out.squeeze())
+    return out
 
-# Define the Streamlit app
-def app():
-    st.title('Image Generator')
-    # Allow the user to input a text prompt
-    prompt = st.text_input('Enter a text prompt')
-    if prompt:
-        # Generate the image from the text prompt
-        image = generate_image(prompt)
-        # Display the generated image
-        st.image(image, caption='Generated Image', use_column_width=True)
+# Load the GAN model
+model = load_gan_model()
 
-# Run app
-app()
+# Set up the Streamlit app
+st.title("GAN Image Generator")
+prompt = st.text_input("Enter your text prompt")
+if st.button("Send"):
+    image = generate_images(prompt, model)
+    st.image(image, width=512)
