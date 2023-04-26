@@ -3,18 +3,18 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 
-# Load the pre-trained StyleGAN2 model from GitHub
-model = torch.hub.load('facebookresearch/pytorch_GAN_zoo:hub', 'stylegan2', pretrained=True)
+# Load the pre-trained BigGAN model from GitHub
+model = torch.hub.load('huggingface/pytorch-pretrained-BigGAN', 'biggan-deep-512', pretrained=True)
 
 # Define a function to generate an image from a user prompt
 def generate_image(prompt):
     # Convert the prompt to a tensor
-    prompt_tensor = transforms.ToTensor()(prompt).unsqueeze(0)
-    # Generate the image using the StyleGAN2 model
+    prompt_tensor = torch.tensor(model.encode(prompt)).unsqueeze(0)
+    # Generate the image using the BigGAN model
     with torch.no_grad():
-        image = model(prompt_tensor, truncation=0.7, truncation_latent=None, input_is_latent=False)
+        image = model.generate_images(prompt_tensor).squeeze(0)
     # Convert the image tensor to a PIL image
-    image = transforms.ToPILImage()(image.squeeze(0))
+    image = transforms.ToPILImage()(image)
     return image
 
 # Define the Streamlit app
